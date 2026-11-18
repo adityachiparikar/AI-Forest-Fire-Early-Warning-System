@@ -1,0 +1,12 @@
+streamlit>=1.25.0
+pandas>=1.5.0
+numpy>=1.23.0
+scikit-learn>=1.0.0
+tensorflow>=2.11.0; platform_system != 'Darwin' or platform_machine != 'arm64'
+tensorflow-macos>=2.11.0; platform_system == 'Darwin' and platform_machine == 'arm64'
+paho-mqtt>=1.6.1
+requests>=2.28.0
+folium>=0.14.0
+streamlit-folium>=0.11.1
+python-dotenv>=1.0.0
+pytest>=7.0.0

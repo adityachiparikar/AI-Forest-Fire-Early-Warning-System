@@ -1,0 +1,19 @@
+# Environment variables (contains private API keys)
+.env
+
+# Python bytecode & cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Pytest & testing artifacts
+.pytest_cache/
+.pytest-tmp-review/
+
+# IDE & agent artifacts
+.claude/
+.vscode/
+.idea/
+
+# Local cache & temporary files
+data/firms_cache.json

@@ -1,0 +1,47 @@
+app.py:L54: yagni: unnecessary importlib.reload call for development hot-reload. Remove the line.
+app.py:L60-67: shrink: _display_layer_name function can be a one-liner using dict literal. Replace lines 60-67 with: def _display_layer_name(layer_name): return {"weather":"Weather","thermal":"Thermal","image":"Image","iot":"IoT"}.get(str(layer_name).lower(), str(layer_name).title())
+app.py:L124-129: shrink: layer status loop can be simplified by using a list of tuples and inlining status/color. Replace lines 124-129 with:
+        layers = [('Weather Risk', weather_predictor), ('Satellite Thermal', firms_client), ('Vision CNN', vision_detector), ('IoT Sensors', iot_pipeline)]
+        for name, obj in layers:
+            status = "Ready" if obj else "Unavailable"
+            color = "green" if obj else "red"
+            st.markdown(f"**{name}:** :{color}[{status}]")
+app.py:L131-132: shrink: replace the table with a simple text line. Replace lines 131-132 with: st.markdown("**Weights:** Weather 15%, Thermal 25%, Image 30%, IoT 30%")
+app.py:L164-168: yagni: weather_input variable only used once; inline it in the predict call. Remove lines 164-168 and change line 171 to: weather_result = weather_predictor.predict({"month": month, "day": day, "FFMC": ffmc, "DMC": dmc, "DC": dc, "ISI": isi, "temp": temp, "RH": rh, "wind": wind, "rain": rain})
+app.py:L203: yagni: intermediate bbox variable unnecessary; compute bounds inline. Remove line 203 and change line 204 bounds to: [[active_region["bbox"]["south"], active_region["bbox"]["west"]], [active_region["bbox"]["north"], active_region["bbox"]["east"]]]
+app.py:L363-369: shrink: alert rendering can use a dict mapping alert level to (st.error, st.warning, st.success). Replace lines 363-369 with:
+        alert_func = {"Confirmed Fire": st.error, "Warning": st.warning, "Watch": st.success}
+        alert_func[alert](f"**{alert}** | Fusion Score: **{score:.1f}%**")
+app.py:L373-379: shrink: active/offline layers display can be simplified with list comprehensions. Replace lines 373-379 with:
+        active = [_display_layer_name(l) for l in reasoning.get("active_layers", [])]
+        offline = [_display_layer_name(l) for l] for l in reasoning.get("offline_layers", [])]
+        if active: st.markdown(f"**Active Layers:** {', '.join(active)}")
+        if offline: st.markdown(f"**Offline Layers:** {', '.join(offline)}")
+        if reasoning.get("weight_redistributed"): st.caption("Weights have been redistributed due to offline layers.")
+app.py:L383-398: shrink: reasoning breakdown dataframe can be simplified if there are few rows; but keep as is for clarity.
+config.py:L19: yagni: lambda _r for creating region dicts is acceptable; keeps code DRY.
+config.py:L50-59: shrink: os.path.join can be replaced with pathlib.Path for cleaner code. Replace import os with from pathlib import Path; set BASE_DIR = Path(__file__).parent; then redefine MODELS_DIR, DATA_DIR, etc. using / operator; adjust mkdir calls accordingly.
+fusion/fusion_engine.py:L58-66: yagni: early return for no modalities can be simplified by constructing the dict directly. Replace lines 58-66 with:
+        if not modalities:
+            return {
+                "confidence_score": 0.0,
+                "alert_level": "Watch",
+                "reasoning": {"error": "All evidence layers are offline or missing data"},
+                "ethical_rationale": "IEEE 7000: Defaulting to Watch state due to zero signal availability."
+            }
+fusion/fusion_engine.py:L88: shrink: final_score = round(weighted_sum * 100, 1) (remove unnecessary .0).
+fusion/fusion_engine.py:L90-102: shrink: alert levels can use a list of tuples. Replace lines 90-102 with:
+        thresholds = [(ALERT_THRESHOLD_CONFIRMED, "Confirmed Fire"), (ALERT_THRESHOLD_WARNING, "Warning")]
+        for threshold, label in thresholds:
+            if final_score >= threshold:
+                alert_level = label
+                break
+        else:
+            alert_level = "Watch"
+fusion/fusion_engine.py:L104-109: shrink: reasoning dict can be built directly. Replace lines 104-109 with:
+        reasoning = {
+            "active_layers": list(modalities.keys()),
+            "offline_layers": [k for k in FUSION_WEIGHTS.keys() if k not in modalities],
+            "contributions": contributions,
+            "weight_redistributed": total_original_weight < 1.0
+        }
